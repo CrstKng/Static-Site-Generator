@@ -3,9 +3,9 @@ from htmlnode import LeafNode
 
 class TextType(Enum):
     TEXT = ""
-    BOLD = "bold"
-    ITALIC = "italic"
-    CODE = "code"
+    BOLD = "**"
+    ITALIC = "_"
+    CODE = "`"
     LINK = "link"
     IMAGE = "image"
 
