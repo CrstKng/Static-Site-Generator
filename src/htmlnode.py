@@ -50,6 +50,8 @@ class LeafNode(HTMLNode):
         if not self.tag:
             return self.value
         else:
+            if self.tag == 'code_block':
+                return f"<pre><code>{self.value}</code></pre>" #could be done easier perhaps
             if self.props:
                 return f"<{self.tag}{self.props_to_html()}>{self.value}</{self.tag}>"
             else:
@@ -75,6 +77,6 @@ class ParentNode(HTMLNode):
                 string += child.to_html()
             if self.props:
                 return f"<{self.tag}{self.props_to_html()}>{string}</{self.tag}>"
-            else:
+            else: 
                 return f"<{self.tag}>{string}</{self.tag}>"
         

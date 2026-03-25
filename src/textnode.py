@@ -8,6 +8,7 @@ class TextType(Enum):
     CODE = "`"
     LINK = "link"
     IMAGE = "image"
+    CODE_BLOCK = "code_block"
 
 class TextNode():
     def __init__(self, text, text_type, url = None):
@@ -39,5 +40,8 @@ def text_node_to_html_node(text_node):
 
     if text_node.text_type == TextType.IMAGE:
         return LeafNode(tag = "img", value = None, props = {"src":text_node.url, "alt":text_node.text})
+    
+    if text_node.text_type == TextType.CODE_BLOCK:
+        return LeafNode(tag = "code_block", value = text_node.text)
     
 
