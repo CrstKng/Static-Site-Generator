@@ -4,7 +4,7 @@ from textnode import TextNode, TextType, text_node_to_html_node
 from functions import split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnodes
 from functions import markdown_to_blocks, BlockType, block_to_block_type, markdown_to_html_node
 
-class TestTextNode(unittest.TestCase):
+class TestFunctions(unittest.TestCase):
     def test_split_delimiter(self):
         node_list = [TextNode("This is text with a **bolded phrase** in the middle", TextType.TEXT)]
         self.assertEqual(split_nodes_delimiter(node_list, "**", TextType.BOLD), [
@@ -93,11 +93,29 @@ class TestTextNode(unittest.TestCase):
             TextType.TEXT,
         )
         new_nodes = split_nodes_image([node])
+ #       print(f"new nodes: {new_nodes}")
         self.assertListEqual(
             [
                 TextNode("This is text with an ", TextType.TEXT),
                 TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
                 TextNode(" and another ", TextType.TEXT),
+                TextNode(
+                    "second image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png"
+                ),
+            ],
+            new_nodes,
+        )
+
+    def test_split_images2(self):
+        node = TextNode(
+            "This is text with two images: ![image](https://i.imgur.com/zjjcJKZ.png)![second image](https://i.imgur.com/3elNhQu.png)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with two images: ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
                 TextNode(
                     "second image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png"
                 ),
@@ -386,3 +404,4 @@ This is the same paragraph on a new line
         )
 
 #needs of a lot more tests of course
+

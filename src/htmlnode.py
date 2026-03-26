@@ -45,9 +45,11 @@ class LeafNode(HTMLNode):
             raise Exception("leaf node does not have children!")
 
     def to_html(self):
-        if not self.value:
+        if self.tag == 'img':
+            return f"<{self.tag}{self.props_to_html()} />"
+        if self.value == None:
             raise ValueError
-        if not self.tag:
+        if self.tag == None:
             return self.value
         else:
             if self.tag == 'code_block':

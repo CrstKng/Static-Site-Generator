@@ -41,15 +41,23 @@ def split_nodes_image(old_nodes):
         if old_node.text_type != TextType.TEXT: #dont know if I need this test
             new_nodes.extend([old_node])
         else:
-            if extract_markdown_links(old_node.text) is None:
+            if extract_markdown_images(old_node.text) is None:
                 new_nodes.extend([old_node])
             else:
+                markdown_images = extract_markdown_images(old_node.text)
                 splitted_old_node = [x for x in re.split(pattern, old_node.text) if x != ""]
                 for i in range (0, len(splitted_old_node)):
-                    if i % 3 == 0:
+                    flag = False
+                    for image_element in markdown_images:
+                        if image_element[0] == splitted_old_node[i]:
+                            new_nodes.append(TextNode(text = splitted_old_node[i], text_type = TextType.IMAGE, url = splitted_old_node[i+1]))
+                            i += 1
+                            flag = True
+                        if image_element[1] == splitted_old_node[i]:
+                            flag = True
+                    if not flag:
                         new_nodes.append(TextNode(text = splitted_old_node[i], text_type = TextType.TEXT))
-                    if i % 3 == 1:
-                        new_nodes.append(TextNode(text = splitted_old_node[i], text_type = TextType.IMAGE, url = splitted_old_node[i+1]))
+ #       print(new_nodes)
     return new_nodes
 
 def split_nodes_link(old_nodes):
@@ -62,12 +70,20 @@ def split_nodes_link(old_nodes):
             if extract_markdown_links(old_node.text) is None:
                 new_nodes.extend([old_node])
             else:
+                markdown_links = extract_markdown_links(old_node.text)
                 splitted_old_node = [x for x in re.split(pattern, old_node.text) if x != ""]
                 for i in range (0, len(splitted_old_node)):
-                    if i % 3 == 0:
+                    flag = False
+                    for link_element in markdown_links:
+                        if link_element[0] == splitted_old_node[i]:
+                            new_nodes.append(TextNode(text = splitted_old_node[i], text_type = TextType.LINK, url = splitted_old_node[i+1]))
+                            i += 1
+                            flag = True
+                        if link_element[1] == splitted_old_node[i]:
+                            flag = True
+                    if not flag:
                         new_nodes.append(TextNode(text = splitted_old_node[i], text_type = TextType.TEXT))
-                    if i % 3 == 1:
-                        new_nodes.append(TextNode(text = splitted_old_node[i], text_type = TextType.LINK, url = splitted_old_node[i+1]))
+ #       print(new_nodes)
     return new_nodes
 
 def text_to_textnodes(text):
@@ -99,7 +115,7 @@ def block_to_block_type(block_md):
         return BlockType.HEADING
     if re.match(r"^```[\s\S]*```$", block_md):
         return BlockType.CODE
-    if re.match(r"^>", block_md) and len(re.findall(r"\n", block_md)) + 1 == len (re.findall(r">", block_md)): #need to fix
+    if re.match(r"^>", block_md) and len(re.findall(r"\n", block_md)) + 1 == len (re.findall(r">", block_md)):
         return BlockType.QUOTE
     if re.match(r"^[*-] ", block_md):
         return BlockType.UNORDERED_LIST
@@ -131,6 +147,7 @@ def markdown_to_html_node(markdown):
             hashtag_string = re.findall(r'^(#+)', block_md)
             number_heading = len(hashtag_string[0])
             heading_text = re.findall(r'#+\s(.+)', block_md)
+ #           print("block h")
             html_node = ParentNode(tag=f"h{number_heading}", children=text_to_children(heading_text[0]))
 
         if block_type == BlockType.CODE:
@@ -141,6 +158,7 @@ def markdown_to_html_node(markdown):
                 if not code_text_line.lstrip() == "":
                     code_text += code_text_line.lstrip() + "\n"
             text_node = TextNode(code_text, TextType.CODE_BLOCK)
+ #           print("block c")
             html_node = text_node_to_html_node(text_node)
 
         if block_type == BlockType.QUOTE:
@@ -148,6 +166,7 @@ def markdown_to_html_node(markdown):
             full_quote_string = ""
             for quote_string in quote_strings:
                 full_quote_string += quote_string.lstrip() + "\n"
+ #           print("block q")
             html_node = ParentNode(tag="blockquote", children=text_to_children(full_quote_string))
 
         if block_type == BlockType.UNORDERED_LIST:  
@@ -155,6 +174,7 @@ def markdown_to_html_node(markdown):
             list_children = []
             for listed_item in listed_items:
                 list_children.append(ParentNode(tag = "li", children=text_to_children(listed_item)))
+ #           print("block ul")
             html_node = ParentNode(tag="ul", children=list_children)
 
 
@@ -163,6 +183,7 @@ def markdown_to_html_node(markdown):
             list_children = []
             for listed_item in listed_items:
                 list_children.append(ParentNode(tag = "li", children = text_to_children(listed_item)))
+  #          print("block ol")
             html_node = ParentNode(tag="ol", children=list_children)
 
         if block_type == BlockType.PARAGRAPH:
@@ -174,10 +195,12 @@ def markdown_to_html_node(markdown):
                         p_text += first_paragraph[i].lstrip()
                     else:
                         p_text += first_paragraph[i].lstrip() + " "
+  #          print("block p")
             if not p_text == "":
                 html_node = ParentNode(tag="p", children=text_to_children(p_text))
             else:
-                html_node = LeafNode(tag=None, value=None)
+                continue
+
         if html_node != LeafNode(tag=None, value=None):
             html_nodes.append(html_node)
 
