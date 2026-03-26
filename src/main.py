@@ -85,7 +85,8 @@ def main():
     if not basepath:
         basepath = '/'
 
-    move_dir_contents('./static', './public')
+    move_dir_contents('./static', './docs')
     generate_pages_recursively('./content', 'template.html', './public', basepath)
+
 
 main()
