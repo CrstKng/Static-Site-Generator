@@ -4,6 +4,7 @@ from functions import markdown_to_blocks, block_to_block_type, BlockType, markdo
 import os
 import shutil
 import re
+import sys
 
 def copy_dir(source_dir_path, destination_dir_path):
     if not os.path.exists(destination_dir_path):
@@ -45,7 +46,7 @@ def extract_title(markdown):
                 return heading_text[0]
     raise Exception("No title provided")
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, basepath):
 
     print(f"Generating page form {from_path} to {dest_path} using {template_path}")
     with open (from_path, "r") as f:
@@ -57,13 +58,14 @@ def generate_page(from_path, template_path, dest_path):
     title = extract_title(read_from_path)
     template_correct_title = read_template.replace("{{ Title }}", title)
     corrected_template = template_correct_title.replace("{{ Content }}", html_string)
+    enhanced_corrected_template = corrected_template.replace('href="/', f'href="{basepath}').replace('src="/', f'src="{basepath}')
     dest_dir_name = os.path.dirname(dest_path)
     if not os.path.exists(dest_dir_name):
         os.makedirs(dest_dir_name)
     with open (dest_path, "w") as f:
-        f.write(corrected_template)
+        f.write(enhanced_corrected_template)
 
-def generate_pages_recursively(dir_path_content, template_path, dest_dir_path):
+def generate_pages_recursively(dir_path_content, template_path, dest_dir_path, basepath):
     content_items = os.listdir(dir_path_content)
     for content_item in content_items:
         item_path = os.path.join(dir_path_content, content_item)
@@ -72,14 +74,18 @@ def generate_pages_recursively(dir_path_content, template_path, dest_dir_path):
             file_name = content_item.split('.')[0] + '.html'
  #           print(file_name)
             dest_file_path = os.path.join(dest_dir_path, file_name)
-            generate_page(item_path, template_path, dest_file_path)
+            generate_page(item_path, template_path, dest_file_path, basepath)
         else:
-            generate_pages_recursively(item_path, template_path, dest_path)
+            generate_pages_recursively(item_path, template_path, dest_path, basepath)
 
 
 def main():
 
+    basepath = sys.argv[0]
+    if not basepath:
+        basepath = '/'
+
     move_dir_contents('./static', './public')
-    generate_pages_recursively('./content', 'template.html', './public')
+    generate_pages_recursively('./content', 'template.html', './public', basepath)
 
 main()
