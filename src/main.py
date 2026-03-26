@@ -81,9 +81,10 @@ def generate_pages_recursively(dir_path_content, template_path, dest_dir_path, b
 
 def main():
 
-    basepath = sys.argv[0]
-    if not basepath:
+    if len(sys.argv) == 1:
         basepath = '/'
+    else:
+        basepath = sys.argv[1]
 
     move_dir_contents('./static', './docs')
     generate_pages_recursively('./content', 'template.html', './docs', basepath)
