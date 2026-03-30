@@ -39,7 +39,7 @@ I used tree-like data structure using nodes in the conversion steps. The flow of
 
 - Raw markdown -> TextNode -> HTMLNode -> html syntax
 
-_TextNode_ is an objects which contains information about the inline elements, once they are identified and stores it in terms of *raw text*, *text type* and optionally *url* variable (where links and image source is stored). Here is how the constructor of a _TextNode_ looks like in the code:
+ _TextNode_ is an objects which contains information about the inline elements, once they are identified and stores it in terms of **raw text**, **text type** and optionally **url** variable (where links and image source is stored). Here is how the constructor of a _TextNode_ looks like in the code:
 
 ```
 class TextNode():
@@ -49,7 +49,7 @@ class TextNode():
         self.url = url
 ```
 
-The _TextNode_ objects have a method that converts them to _HTMLNode_ objects. The _HTMLNode_ objects each represent a node in a tree data structure, where each node holds information about an html segment - *tag*, *value* and optionally *props* field, where attributes to the tag are saved, if there are any, as well as reference to the children nodes (the inner html segments of the chosen), if there are any:
+The _TextNode_ objects have a method that converts them to _HTMLNode_ objects. The _HTMLNode_ objects each represent a node in a tree data structure, where each node holds information about an html segment - **tag**, **value** and optionally **props** field, where attributes to the tag are saved, if there are any, as well as reference to the children nodes (the inner html segments of the chosen), if there are any:
 
 ```
 class HTMLNode():
@@ -130,11 +130,11 @@ class BlockType(Enum):
 def block_to_block_type(block_md):
     if re.match(r"^#{1,6}\s", block_md):    
         return BlockType.HEADING
-    if re.match(r"^```[\s\S]*```$", block_md):
+    if re.match(r"^```[\s\S]**```$", block_md):
         return BlockType.CODE
     if re.match(r"^>", block_md) and len(re.findall(r"\n", block_md)) + 1 == len (re.findall(r">", block_md)):
         return BlockType.QUOTE
-    if re.match(r"^[*-] ", block_md):
+    if re.match(r"^[**-] ", block_md):
         return BlockType.UNORDERED_LIST
     if re.match(r"^1\.\s", block_md): #make it, so the digit must go from 1 onward !!!
         i = 2
@@ -148,7 +148,7 @@ def block_to_block_type(block_md):
     return BlockType.PARAGRAPH
 ```
 
-Once I've identified what type a block is, I need to identify all of the inner inline elements (bold, italic and code text as well as images and links) that are in that block. For the *bold*, _italic_ and `code` text I just use a combined function with a *delimiter* option which would serve as finder for all of the three elements:
+Once I've identified what type a block is, I need to identify all of the inner inline elements (bold, italic and code text as well as images and links) that are in that block. For the **bold**, _italic_ and `code` text I just use a combined function with a **delimiter** option which would serve as finder for all of the three elements:
 
 ```
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
@@ -235,7 +235,7 @@ def text_to_textnodes(text):
     return final_nodes
 ```
 
-The *text_to_textnodes()* function basically converts any block of raw markdown text into a bunch of _TextNode_ s, which hold information of every inline element in the text block. Now it's time to convert those _TextNode_ s into _HTMLNode_ s:
+The **text_to_textnodes()** function basically converts any block of raw markdown text into a bunch of _TextNode_ s, which hold information of every inline element in the text block. Now it's time to convert those _TextNode_ s into _HTMLNode_ s:
 
 ```
 def text_to_children(text):             #used for all block types except BlockType.CODE
@@ -247,7 +247,7 @@ def text_to_children(text):             #used for all block types except BlockTy
     return html_nodes
 ```
 
-That way, for each block level _ParentNode_ the code has a way to convert the block's text into the node's *children* _HTMLNode_ s. The code also needs a way to convert the markdown syntax block level syntax into an html syntax for the block _ParentNode_. I again use [regex](https://docs.python.org/3/library/re.html) patterns for that:
+That way, for each block level _ParentNode_ the code has a way to convert the block's text into the node's **children** _HTMLNode_ s. The code also needs a way to convert the markdown syntax block level syntax into an html syntax for the block _ParentNode_. I again use [regex](https://docs.python.org/3/library/re.html) patterns for that:
 
 ```
 def markdown_to_html_node(markdown):
