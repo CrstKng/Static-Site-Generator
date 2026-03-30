@@ -1,5 +1,3 @@
-from textnode import TextNode, TextType
-from htmlnode import HTMLNode, LeafNode, ParentNode
 from functions import markdown_to_blocks, block_to_block_type, BlockType, markdown_to_html_node
 import os
 import shutil
