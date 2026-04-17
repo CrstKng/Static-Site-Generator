@@ -103,8 +103,8 @@ def markdown_to_blocks(markdown):
 
 
 class BlockType(Enum):
-    PARAGRAPH = "",
-    HEADING = "#",
+    PARAGRAPH = ""
+    HEADING = "#"
     CODE = "```"
     QUOTE = ">"
     UNORDERED_LIST = "-"

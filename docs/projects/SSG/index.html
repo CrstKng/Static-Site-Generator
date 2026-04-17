@@ -20,26 +20,70 @@ self.value = value
 self.children = children
 self.props = props
 </code></pre><p>I use two chidclasses of the <i>HTMLNode</i> class, namely <i>ParentNode</i> and <i>LeafNode</i>. <i>LeafNode</i> represents, unsurprisingly, the leaf nodes of the data structure (those without children) and the <i>ParentNode</i> represents all other nodes - those with children (inner html segments). The <i>LeafNode</i> has a method that converts them into html syntax:</p><pre><code>def to_html(self):
-if self.tag == 'img':
-return f"<{self.tag}{self.props_to_html()} />"
+if self.tag == &#x27;img&#x27;:
+return f&quot;&lt;{self.tag}{self.props_to_html()} /&gt;&quot;
 if self.value == None:
 raise ValueError
 if self.tag == None:
 return self.value
 else:
-if self.tag == 'code_block':
-return f"<pre><code>{self.value}</code></pre>"
+if self.tag == &#x27;code_block&#x27;:
+return f&quot;&lt;pre&gt;&lt;code&gt;{self.value}&lt;/code&gt;&lt;/pre&gt;&quot;
 if self.props:
-return f"<{self.tag}{self.props_to_html()}>{self.value}</{self.tag}>"
+return f&quot;&lt;{self.tag}{self.props_to_html()}&gt;{self.value}&lt;/{self.tag}&gt;&quot;
 else:
-return f"<{self.tag}>{self.value}</{self.tag}>"
-</code></pre><p>The <i>ParentNode</i> also has its own method for conversion to html syntax. It utilizes the fact that it must not have value (since the would be value is transfered to its children) and must have a tag (otherwise it would be just raw text, which is only possible for a <i>LeafNode</i>) and children:</p><p><code></code><code> class ParentNode(HTMLNode): def </code><i></i>init<i></i>(self, tag, children, value=None, props=None): super().<i></i>init<i></i>(tag, value, children, props) if self.value: raise Exception("parent node does not have value!")</p><p>def to<i>html(self): if not self.tag: raise ValueError("parent node must have a tag") if not self.children: raise ValueError("parent node must have children") else: string = "" for child in self.children: string += child.to</i>html() if self.props: return f"<{self.tag}{self.props<i>to</i>html()}>{string}</{self.tag}>" else:  return f"<{self.tag}>{string}</{self.tag}>" <code></code><code></code></p><p>Now that I have a way to convert inline elements to html syntax, I need to actually find and identify them in the markdown text. First I'll discuss how to divide a whole markdown text file into blocks and then the blocks into inline elements. (This segment probably needs to be rewritten!!!!)</p><p>It is actually pretty simple to split the markdown code into blocks, since they are separated with new lines. I do that using the following function:</p><pre><code>def markdown_to_blocks(markdown):
-split_md = markdown.split("\n\n")
+return f&quot;&lt;{self.tag}&gt;{self.value}&lt;/{self.tag}&gt;&quot;
+</code></pre><p>The <i>ParentNode</i> also has its own method for conversion to html syntax. It utilizes the fact that it must not have value (since the would be value is transfered to its children) and must have a tag (otherwise it would be just raw text, which is only possible for a <i>LeafNode</i>) and children:</p><pre><code>class ParentNode(HTMLNode):
+def __init__(self, tag, children, value=None, props=None):
+super().__init__(tag, value, children, props)
+if self.value:
+raise Exception(&quot;parent node does not have value!&quot;)
+</code></pre><pre><code>def to_html(self):
+if not self.tag:
+raise ValueError(&quot;parent node must have a tag&quot;)
+if not self.children:
+raise ValueError(&quot;parent node must have children&quot;)
+else:
+string = &quot;&quot;
+for child in self.children:
+string += child.to_html()
+if self.props:
+return f&quot;&lt;{self.tag}{self.props_to_html()}&gt;{string}&lt;/{self.tag}&gt;&quot;
+else: 
+return f&quot;&lt;{self.tag}&gt;{string}&lt;/{self.tag}&gt;&quot;
+</code></pre><p>Now that I have a way to convert inline elements to html syntax, I need to actually find and identify them in the markdown text. First I'll discuss how to divide a whole markdown text file into blocks and then the blocks into inline elements. (This segment probably needs to be rewritten!!!!)</p><p>It is actually pretty simple to split the markdown code into blocks, since they are separated with new lines. I do that using the following function:</p><pre><code>def markdown_to_blocks(markdown):
+split_md = markdown.split(&quot;\n\n&quot;)
 blocks_md = []
 for block in split_md:
 blocks_md.append(block.strip())
 return blocks_md
-</code></pre><p>To recognize what type each block is (heading, unordered list, ordered list, code, quote or paragraph) I am using <a href="https://docs.python.org/3/library/re.html">regex</a> to identify what pattern each block follows (for example in markdown headings must start with 1-6 '#' and then a white space). I am also using an enum for each different type:</p><p><code></code><code> class BlockType(Enum): PARAGRAPH = "", HEADING = "#", CODE = "</code><code></code>" QUOTE = ">" UNORDERED<i>LIST = "-" ORDERED</i>LIST = "."</p><p>def block<i>to</i>block<i>type(block</i>md): if re.match(r"^#{1,6}\s", block<i>md):     return BlockType.HEADING if re.match(r"^```[\s\S]</i><b>```$", block_md): return BlockType.CODE if re.match(r"^>", block_md) and len(re.findall(r"\n", block_md)) + 1 == len (re.findall(r">", block_md)): return BlockType.QUOTE if re.match(r"^[</b>-] ", block<i>md): return BlockType.UNORDERED</i>LIST if re.match(r"^1\.\s", block<i>md): #make it, so the digit must go from 1 onward !!! i = 2 matches = [] while True: matches.append(re.findall(fr"^\n{i}\.\s", block</i>md)) i += 1 if len(matches[i-3]) != 2 or len(matches) != i-2: break return BlockType.ORDERED<i>LIST return BlockType.PARAGRAPH ```</i></p><p>Once I've identified what type a block is, I need to identify all of the inner inline elements (bold, italic and code text as well as images and links) that are in that block. For the <b>bold</b>, <i>italic</i> and <code>code</code> text I just use a combined function with a <b>delimiter</b> option which would serve as finder for all of the three elements:</p><pre><code>def split_nodes_delimiter(old_nodes, delimiter, text_type):
+</code></pre><p>To recognize what type each block is (heading, unordered list, ordered list, code, quote or paragraph) I am using <a href="https://docs.python.org/3/library/re.html">regex</a> to identify what pattern each block follows (for example in markdown headings must start with 1-6 '#' and then a white space). I am also using an enum for each different type:</p><pre><code>class BlockType(Enum):
+PARAGRAPH = &quot;&quot;
+HEADING = &quot;#&quot;
+CODE = &quot;```&quot;
+QUOTE = &quot;&gt;&quot;
+UNORDERED_LIST = &quot;-&quot;
+ORDERED_LIST = &quot;.&quot;
+</code></pre><pre><code>def block_to_block_type(block_md):
+if re.match(r&quot;^#{1,6}\s&quot;, block_md):    
+return BlockType.HEADING
+if re.match(r&quot;^```[\s\S]**```$&quot;, block_md):
+return BlockType.CODE
+if re.match(r&quot;^&gt;&quot;, block_md) and len(re.findall(r&quot;\n&quot;, block_md)) + 1 == len (re.findall(r&quot;&gt;&quot;, block_md)):
+return BlockType.QUOTE
+if re.match(r&quot;^[**-] &quot;, block_md):
+return BlockType.UNORDERED_LIST
+if re.match(r&quot;^1\.\s&quot;, block_md): #make it, so the digit must go from 1 onward !!!
+i = 2
+matches = []
+while True:
+matches.append(re.findall(fr&quot;^\n{i}\.\s&quot;, block_md))
+i += 1
+if len(matches[i-3]) != 2 or len(matches) != i-2:
+break
+return BlockType.ORDERED_LIST
+return BlockType.PARAGRAPH
+</code></pre><p>Once I've identified what type a block is, I need to identify all of the inner inline elements (bold, italic and code text as well as images and links) that are in that block. For the <b>bold</b>, <i>italic</i> and <code>code</code> text I just use a combined function with a <b>delimiter</b> option which would serve as finder for all of the three elements:</p><pre><code>def split_nodes_delimiter(old_nodes, delimiter, text_type):
 new_nodes = []
 for old_node in old_nodes:
 if old_node.text_type != TextType.TEXT:
@@ -49,16 +93,16 @@ splitted_old_node = old_node.text.split(delimiter)
 for i in range (0, len(splitted_old_node)):
 if i % 2 == 0:
 new_nodes.append(TextNode(text = splitted_old_node[i], text_type = TextType.TEXT))
-if delimiter == "**" and i % 2 == 1:
+if delimiter == &quot;**&quot; and i % 2 == 1:
 new_nodes.append(TextNode(text = splitted_old_node[i], text_type = TextType.BOLD))
-if delimiter == "_" and i % 2 == 1:
+if delimiter == &quot;_&quot; and i % 2 == 1:
 new_nodes.append(TextNode(text = splitted_old_node[i], text_type = TextType.ITALIC))
-if delimiter == "`" and i % 2 == 1:
+if delimiter == &quot;`&quot; and i % 2 == 1:
 new_nodes.append(TextNode(text = splitted_old_node[i], text_type = TextType.CODE))
 return new_nodes
 </code></pre><p>To identify images and links, I use <a href="https://docs.python.org/3/library/re.html">regex</a> patterns again. The two functions are pretty similar and the ideas is to find image(or link) and split the text type parts of the block into image(link) type <i>TextNode</i> s and leave the rest as text types:</p><pre><code>def split_nodes_image(old_nodes):
 new_nodes = []
-pattern = r"!\[([^\[\]]*)\]\(([^\(\)]*)\)"
+pattern = r&quot;!\[([^\[\]]*)\]\(([^\(\)]*)\)&quot;
 for old_node in old_nodes:
 if old_node.text_type != TextType.TEXT: #dont know if I need this test
 new_nodes.extend([old_node])
@@ -67,7 +111,7 @@ if extract_markdown_images(old_node.text) is None:
 new_nodes.extend([old_node])
 else:
 markdown_images = extract_markdown_images(old_node.text)
-splitted_old_node = [x for x in re.split(pattern, old_node.text) if x != ""]
+splitted_old_node = [x for x in re.split(pattern, old_node.text) if x != &quot;&quot;]
 for i in range (0, len(splitted_old_node)):
 flag = False
 for image_element in markdown_images:
@@ -80,18 +124,18 @@ flag = True
 if not flag:
 new_nodes.append(TextNode(text = splitted_old_node[i], text_type = TextType.TEXT))
 return new_nodes
-</code></pre><pre><code>def split_nodes_link(old_nodes):
+</code></pre><p>Here is the one for links:</p><pre><code>def split_nodes_link(old_nodes):
 new_nodes = []
-pattern = r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)"
+pattern = r&#x27;(?&lt;!!)\[([^\[\]]*)\]\(([^\(\)]*)\)&#x27;
 for old_node in old_nodes:
-if old_node.text_type != TextType.TEXT: #dont know if I need this test
+if old_node.text_type != TextType.TEXT:
 new_nodes.extend([old_node])
 else:
 if extract_markdown_links(old_node.text) is None:
 new_nodes.extend([old_node])
 else:
 markdown_links = extract_markdown_links(old_node.text)
-splitted_old_node = [x for x in re.split(pattern, old_node.text) if x != ""]
+splitted_old_node = [x for x in re.split(pattern, old_node.text) if x != &quot;&quot;]
 for i in range (0, len(splitted_old_node)):
 flag = False
 for link_element in markdown_links:
@@ -106,7 +150,7 @@ new_nodes.append(TextNode(text = splitted_old_node[i], text_type = TextType.TEXT
 return new_nodes
 </code></pre><p>Once I can find and split a text block into different kinds of inline elements I combine all the splitting function into one by just calling each on the output of each other, which could be done by the fact that all outputs are part of each function's arguments:</p><pre><code>def text_to_textnodes(text):
 old_node = [TextNode(text = text, text_type = TextType.TEXT)]
-final_nodes = split_nodes_link(split_nodes_image(split_nodes_delimiter(split_nodes_delimiter(split_nodes_delimiter(old_node, "**", TextType.BOLD), "_", TextType.ITALIC), "`", TextType.CODE)))
+final_nodes = split_nodes_link(split_nodes_image(split_nodes_delimiter(split_nodes_delimiter(split_nodes_delimiter(old_node, &quot;**&quot;, TextType.BOLD), &quot;_&quot;, TextType.ITALIC), &quot;`&quot;, TextType.CODE)))
 return final_nodes
 </code></pre><p>The <b>text_to_textnodes()</b> function basically converts any block of raw markdown text into a bunch of <i>TextNode</i> s, which hold information of every inline element in the text block. Now it's time to convert those <i>TextNode</i> s into <i>HTMLNode</i> s:</p><pre><code>def text_to_children(text):             #used for all block types except BlockType.CODE
 text_nodes = text_to_textnodes(text)
@@ -121,7 +165,7 @@ for content_item in content_items:
 item_path = os.path.join(dir_path_content, content_item)
 dest_path = os.path.join(dest_dir_path, content_item)
 if os.path.isfile(item_path):
-file_name = content_item.split('.')[0] + '.html'
+file_name = content_item.split(&#x27;.&#x27;)[0] + &#x27;.html&#x27;
 dest_file_path = os.path.join(dest_dir_path, file_name)
 generate_page(item_path, template_path, dest_file_path, basepath)
 else:

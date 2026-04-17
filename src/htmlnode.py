@@ -1,3 +1,5 @@
+import html
+
 class HTMLNode():
     def __init__(self, tag=None, value=None, children=None, props=None):
         self.tag = tag
@@ -53,7 +55,8 @@ class LeafNode(HTMLNode):
             return self.value
         else:
             if self.tag == 'code_block':
-                return f"<pre><code>{self.value}</code></pre>" #could be done easier perhaps
+                escaped = html.escape(self.value)
+                return f"<pre><code>{escaped}</code></pre>" #could be done easier perhaps
             if self.props:
                 return f"<{self.tag}{self.props_to_html()}>{self.value}</{self.tag}>"
             else:

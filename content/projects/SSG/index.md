@@ -87,7 +87,9 @@ class ParentNode(HTMLNode):
         super().__init__(tag, value, children, props)
         if self.value:
             raise Exception("parent node does not have value!")
+```
 
+```
     def to_html(self):
         if not self.tag:
             raise ValueError("parent node must have a tag")
@@ -120,17 +122,19 @@ To recognize what type each block is (heading, unordered list, ordered list, cod
 
 ```
 class BlockType(Enum):
-    PARAGRAPH = "",
-    HEADING = "#",
+    PARAGRAPH = ""
+    HEADING = "#"
     CODE = "```"
     QUOTE = ">"
     UNORDERED_LIST = "-"
     ORDERED_LIST = "."
+```
 
+```
 def block_to_block_type(block_md):
     if re.match(r"^#{1,6}\s", block_md):    
         return BlockType.HEADING
-    if re.match(r"^```[\s\S]**```$", block_md):
+    if re.match(r"^```[\s\S]*```$", block_md):
         return BlockType.CODE
     if re.match(r"^>", block_md) and len(re.findall(r"\n", block_md)) + 1 == len (re.findall(r">", block_md)):
         return BlockType.QUOTE
@@ -199,12 +203,14 @@ def split_nodes_image(old_nodes):
     return new_nodes
 ```
 
+Here is the one for links:
+
 ```
 def split_nodes_link(old_nodes):
     new_nodes = []
-    pattern = r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)"
+    pattern = r'(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)'
     for old_node in old_nodes:
-        if old_node.text_type != TextType.TEXT: #dont know if I need this test
+        if old_node.text_type != TextType.TEXT:
             new_nodes.extend([old_node])
         else:
             if extract_markdown_links(old_node.text) is None:
@@ -284,7 +290,6 @@ def markdown_to_html_node(markdown):
             for listed_item in listed_items:
                 list_children.append(ParentNode(tag = "li", children=text_to_children(listed_item)))
             html_node = ParentNode(tag="ul", children=list_children)
-
 
         if block_type == BlockType.ORDERED_LIST:
             listed_items = re.findall(r"\d{1}\.\s([^\n]+)", block_md)
